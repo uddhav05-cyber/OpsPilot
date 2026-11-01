@@ -42,9 +42,32 @@ No additional configuration needed. Uses built-in templates.
 | `PORT` | `8000` | Port number |
 | `ENVIRONMENT` | `development` | `development` or `production` |
 
+### CORS Settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CORS_ALLOWED_ORIGINS` | `*` | Comma-separated list of allowed origins (e.g., `https://app.example.com,https://admin.example.com`). **In production with credentials enabled, must be explicit list, not `*`.** |
+| `CORS_ALLOW_CREDENTIALS` | `true` | Allow credentials (cookies, auth headers). **In production with wildcard origins, must be `false`.** |
+| `CORS_ALLOWED_METHODS` | `*` | Comma-separated list of allowed HTTP methods |
+| `CORS_ALLOWED_HEADERS` | `*` | Comma-separated list of allowed request headers |
+
+**Production CORS Requirements:**
+- When `ENVIRONMENT=production` and `CORS_ALLOW_CREDENTIALS=true`, `CORS_ALLOWED_ORIGINS` must be an explicit list of trusted origins (not `*`). The application will fail to start with a clear error message if this combination is detected.
+- For development (`ENVIRONMENT=development`), the permissive defaults (`*`) are allowed for convenience.
+- To allow credentials in production: `CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com` and `CORS_ALLOW_CREDENTIALS=true`
+- To use wildcard origins in production: `CORS_ALLOW_CREDENTIALS=false` (no cookies/auth headers from browsers)
+
+Set `CORS_ALLOWED_ORIGINS` to a specific list of origins in production for security.
+
+### Support Phone
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SUPPORT_PHONE` | `+1-555-0200` | Phone number shown when the knowledge base cannot answer a question |
+
 ### Rate Limiting
 
-Uses [SlowAPI](https://github.com/laurt/SlowAPI) with in-memory storage.
+Uses [SlowAPI](https://github.com/laurt/SlowAPI) with **in-memory storage**.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -53,6 +76,8 @@ Uses [SlowAPI](https://github.com/laurt/SlowAPI) with in-memory storage.
 | `RATE_LIMIT_WINDOW` | `60` | Window in seconds |
 
 In `development` mode, rate limiting can be disabled for easier testing.
+
+> **Note on Rate Limiting:** The current implementation uses in-memory storage for rate limiting. This works for single-instance deployments but **does not work correctly in multi-instance (scaled) deployments** where each instance has its own rate limit counter. For production deployments with multiple replicas, use a distributed rate limiter backed by Redis (e.g., `slowapi` with `RedisStorage`) or an API gateway (nginx, Traefik, Kong) for centralized rate limiting.
 
 ### Cache Settings
 

@@ -74,21 +74,6 @@ class QueryExpander:
         "ha": "high availability",
         "lb": "load balancer",
         "az": "availability zone",
-        "region": "cloud region",
-        "sla": "service level agreement",
-        "slo": "service level objective",
-        "sli": "service level indicator",
-        "mttr": "mean time to recovery",
-        "mtbf": "mean time between failures",
-        "apm": "application performance monitoring",
-        "rum": "real user monitoring",
-        "tracing": "distributed tracing",
-        "logging": "centralized logging",
-        "metrics": "system metrics",
-        "alert": "alerting rule",
-        "oncall": "on-call rotation",
-        "runbook": "operational runbook",
-        "playbook": "automation playbook",
     }
 
     # Domain-specific synonyms

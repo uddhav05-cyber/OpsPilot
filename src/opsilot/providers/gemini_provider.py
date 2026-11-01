@@ -13,9 +13,11 @@ class GeminiProvider(LLMProvider):
         self,
         model: Optional[str] = None,
         api_key: Optional[str] = None,
+        timeout: float = 30.0,
     ):
         self._model = model or os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
         self._api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self._timeout = timeout
         self._client = None
 
     @property
@@ -66,6 +68,8 @@ class GeminiProvider(LLMProvider):
                     temperature=temperature,
                     max_output_tokens=max_tokens,
                 ),
+                # Apply timeout
+                timeout=self._timeout,
             )
 
             # Extract content

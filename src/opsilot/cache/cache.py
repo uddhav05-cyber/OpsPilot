@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Optional
@@ -90,6 +91,7 @@ class AnswerCache:
         self._ttl_seconds = ttl_seconds
         self._normalizer = QuestionNormalizer()
         self._stats = CacheStats()
+        self._lock = threading.RLock()
 
     def _generate_key(self, question: str, config_hash: str) -> str:
         """Generate cache key from normalized question and config hash."""
@@ -113,36 +115,37 @@ class AnswerCache:
         top_k: int,
     ) -> Optional[Answer]:
         """Retrieve cached answer if available and not expired."""
-        self._stats.total_requests += 1
+        with self._lock:
+            self._stats.total_requests += 1
 
-        config_hash = self._generate_config_hash(
-            provider=provider,
-            model=model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            min_relevance_score=min_relevance_score,
-            top_k=top_k,
-        )
+            config_hash = self._generate_config_hash(
+                provider=provider,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                min_relevance_score=min_relevance_score,
+                top_k=top_k,
+            )
 
-        key = self._generate_key(question, config_hash)
-        entry = self._cache.get(key)
+            key = self._generate_key(question, config_hash)
+            entry = self._cache.get(key)
 
-        if entry is None:
-            self._stats.cache_misses += 1
-            return None
+            if entry is None:
+                self._stats.cache_misses += 1
+                return None
 
-        if entry.is_expired():
-            del self._cache[key]
-            self._stats.cache_misses += 1
-            return None
+            if entry.is_expired():
+                del self._cache[key]
+                self._stats.cache_misses += 1
+                return None
 
-        # Check negation guard
-        if self._normalizer.has_opposite_intent(question):
-            self._stats.cache_misses += 1
-            return None
+            # Check negation guard
+            if self._normalizer.has_opposite_intent(question):
+                self._stats.cache_misses += 1
+                return None
 
-        self._stats.cache_hits += 1
-        return entry.answer
+            self._stats.cache_hits += 1
+            return entry.answer
 
     def set(
         self,
@@ -156,57 +159,61 @@ class AnswerCache:
         top_k: int,
     ) -> None:
         """Store answer in cache."""
-        # Don't cache if question has opposite intent
-        if self._normalizer.has_opposite_intent(question):
-            return
+        with self._lock:
+            # Don't cache if question has opposite intent
+            if self._normalizer.has_opposite_intent(question):
+                return
 
-        config_hash = self._generate_config_hash(
-            provider=provider,
-            model=model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            min_relevance_score=min_relevance_score,
-            top_k=top_k,
-        )
+            config_hash = self._generate_config_hash(
+                provider=provider,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                min_relevance_score=min_relevance_score,
+                top_k=top_k,
+            )
 
-        key = self._generate_key(question, config_hash)
-        normalized = self._normalizer.normalize(question)
+            key = self._generate_key(question, config_hash)
+            normalized = self._normalizer.normalize(question)
 
-        entry = CacheEntry(
-            answer=answer,
-            question_normalized=normalized,
-            ttl_seconds=self._ttl_seconds,
-            config_hash=config_hash,
-        )
+            entry = CacheEntry(
+                answer=answer,
+                question_normalized=normalized,
+                ttl_seconds=self._ttl_seconds,
+                config_hash=config_hash,
+            )
 
-        self._cache[key] = entry
-        self._stats.entries = len(self._cache)
+            self._cache[key] = entry
+            self._stats.entries = len(self._cache)
 
     def _evict_expired(self) -> int:
         """Remove expired entries. Returns count of evicted entries."""
-        expired_keys = [
-            key for key, entry in self._cache.items() if entry.is_expired()
-        ]
-        for key in expired_keys:
-            del self._cache[key]
-        self._stats.expired_entries = len(expired_keys)
-        self._stats.entries = len(self._cache)
-        return len(expired_keys)
+        with self._lock:
+            expired_keys = [
+                key for key, entry in self._cache.items() if entry.is_expired()
+            ]
+            for key in expired_keys:
+                del self._cache[key]
+            self._stats.expired_entries = len(expired_keys)
+            self._stats.entries = len(self._cache)
+            return len(expired_keys)
 
     def clear(self) -> int:
         """Clear all cache entries. Returns number of cleared entries."""
-        count = len(self._cache)
-        self._cache.clear()
-        self._stats.entries = 0
-        return count
+        with self._lock:
+            count = len(self._cache)
+            self._cache.clear()
+            self._stats.entries = 0
+            return count
 
     def stats(self) -> CacheStats:
         """Get cache statistics."""
-        self._evict_expired()
-        return CacheStats(
-            total_requests=self._stats.total_requests,
-            cache_hits=self._stats.cache_hits,
-            cache_misses=self._stats.cache_misses,
-            entries=self._stats.entries,
-            expired_entries=self._stats.expired_entries,
-        )
+        with self._lock:
+            self._evict_expired()
+            return CacheStats(
+                total_requests=self._stats.total_requests,
+                cache_hits=self._stats.cache_hits,
+                cache_misses=self._stats.cache_misses,
+                entries=self._stats.entries,
+                expired_entries=self._stats.expired_entries,
+            )

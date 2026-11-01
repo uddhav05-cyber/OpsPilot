@@ -1,0 +1,72 @@
+[
+  {
+    "runbook_id": "mfa-reset-001",
+    "title": "MFA Reset Procedure",
+    "category": "security",
+    "content": "To reset a user's MFA: 1. Navigate to Admin Console > Users. 2. Select the user from the list. 3. Click 'Reset MFA' button. 4. Confirm the reset action. 5. User will be prompted to re-enroll MFA on next login. 6. Verify user can authenticate successfully after re-enrollment.",
+    "tags": ["mfa", "authentication", "reset", "security", "admin-console"]
+  },
+  {
+    "runbook_id": "vpn-troubleshoot-001",
+    "title": "VPN Troubleshooting",
+    "category": "network",
+    "content": "VPN connection issues troubleshooting: 1. Verify user credentials are correct and not expired. 2. Check firewall rules allow UDP 500 and UDP 4500 (IPSec/IKE). 3. Validate certificate expiration dates on both client and server. 4. Review VPN connection logs for error codes. 5. Ensure split tunneling is configured correctly. 6. Test connectivity to internal resources (e.g., ping 10.0.1.1). 7. Check for MTU issues - try reducing MTU to 1300. 8. Verify DNS resolution works through VPN tunnel.",
+    "tags": ["vpn", "network", "troubleshooting", "ipsec", "certificate", "firewall"]
+  },
+  {
+    "runbook_id": "dhcp-issues-001",
+    "title": "DHCP Issues",
+    "category": "network",
+    "content": "DHCP troubleshooting steps: 1. Check DHCP server service is running. 2. Verify DHCP scope is not exhausted (check available IP addresses). 3. Check for rogue DHCP servers on the network. 4. Review DHCP server logs for errors or conflicts. 5. Verify DHCP relay agents are configured correctly for remote subnets. 6. Check lease times are appropriate for the network. 7. Ensure DHCP options (router, DNS, domain) are configured correctly. 8. Test with a known-good client device.",
+    "tags": ["dhcp", "network", "ip", "server", "scope", "lease"]
+  },
+  {
+    "runbook_id": "cert-renewal-001",
+    "title": "SSL/TLS Certificate Renewal",
+    "category": "security",
+    "content": "To renew SSL/TLS certificates: 1. Generate new Certificate Signing Request (CSR) with 2048-bit or 4096-bit key. 2. Submit CSR to Certificate Authority (internal or public CA). 3. Receive signed certificate and intermediate CA bundle. 4. Install new certificate on web servers / load balancers. 5. Update certificate chains and verify complete chain. 6. Test with SSL Labs or similar tool. 7. Update monitoring/alerting for new expiration date. 8. Schedule next renewal 30 days before expiration.",
+    "tags": ["certificate", "ssl", "tls", "renewal", "ca", "csr", "pki"]
+  },
+  {
+    "runbook_id": "printer-troubleshoot-001",
+    "title": "Printer Troubleshooting",
+    "category": "hardware",
+    "content": "Printer issues troubleshooting: 1. Check printer is powered on and shows 'Ready' status. 2. Verify printer is on same network subnet (10.0.x.x for office). 3. Re-add printer in Settings > Devices > Printers & Scanners. 4. Use universal print driver from software portal. 5. Cancel any stuck print jobs in queue. 6. Download latest driver from manufacturer support site (hp.com/support, etc.). 7. Check paper trays and toner/ink levels. 8. Contact facilities@corp.example.com for hardware issues requiring on-site support.",
+    "tags": ["printer", "hardware", "troubleshooting", "driver", "network"]
+  },
+  {
+    "runbook_id": "server-provision-001",
+    "title": "Server Provisioning",
+    "category": "infrastructure",
+    "content": "New server provisioning checklist: 1. Request IP address from IPAM. 2. Create DNS records (A, PTR). 3. Provision VM or bare metal via automation (Terraform/Ansible). 4. Apply base OS image with security hardening. 5. Join to domain / configure LDAP. 6. Install monitoring agent (Datadog/Prometheus). 7. Configure backup policy. 8. Apply OS patches and updates. 9. Document in CMDB. 10. Handoff to application team.",
+    "tags": ["server", "provisioning", "infrastructure", "automation", "cmdb", "monitoring"]
+  },
+  {
+    "runbook_id": "backup-restore-001",
+    "title": "Backup and Restore",
+    "category": "infrastructure",
+    "content": "Backup verification and restore procedure: 1. Verify backup jobs completed successfully (check reports). 2. Test restore of critical database to staging environment monthly. 3. Verify restored data integrity with checksums. 4. Document RPO (Recovery Point Objective) and RTO (Recovery Time Objective). 5. For restore: identify correct backup set, restore to target, validate application connectivity. 6. Update runbook after each restore test with lessons learned.",
+    "tags": ["backup", "restore", "disaster-recovery", "rpo", "rto", "database"]
+  },
+  {
+    "runbook_id": "app-deploy-001",
+    "title": "Application Deployment",
+    "category": "application",
+    "content": "Application deployment procedure: 1. Create deployment branch from main. 2. Run CI pipeline (lint, test, build, scan). 3. Deploy to staging environment. 4. Run smoke tests and integration tests. 5. Get stakeholder approval for production deploy. 6. Deploy to production using blue-green or rolling strategy. 7. Monitor health metrics for 30 minutes post-deploy. 8. Update deployment log with version and timestamp. 9. Rollback procedure: trigger previous version deploy if issues detected.",
+    "tags": ["deployment", "application", "ci-cd", "staging", "production", "rollback"]
+  },
+  {
+    "runbook_id": "incident-response-001",
+    "title": "Incident Response",
+    "category": "security",
+    "content": "Security incident response: 1. Detect and classify incident severity (SEV-1 to SEV-4). 2. Assemble incident response team. 3. Contain threat (isolate affected systems). 4. Collect evidence (logs, memory dumps, disk images). 5. Eradicate root cause (patch, remove malware, rotate credentials). 6. Recover systems from clean backups. 7. Post-incident review within 48 hours. 8. Update detection rules and runbooks based on findings.",
+    "tags": ["incident", "security", "response", "forensics", "containment", "recovery"]
+  },
+  {
+    "runbook_id": "dns-troubleshoot-001",
+    "title": "DNS Troubleshooting",
+    "category": "network",
+    "content": "DNS resolution issues: 1. Verify DNS server reachability (ping DNS server IP). 2. Check DNS server service status. 3. Test resolution with nslookup/dig against multiple DNS servers. 4. Check for DNS cache poisoning or hijacking. 5. Verify forward and reverse lookup zones. 6. Check TTL values and propagation delays. 7. Review DNS query logs for patterns. 8. Flush client DNS cache (ipconfig /flushdns).",
+    "tags": ["dns", "network", "troubleshooting", "resolution", "nslookup"]
+  }
+]

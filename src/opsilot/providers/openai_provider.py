@@ -13,9 +13,11 @@ class OpenAIProvider(LLMProvider):
         self,
         model: Optional[str] = None,
         api_key: Optional[str] = None,
+        timeout: float = 30.0,
     ):
         self._model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self._api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self._timeout = timeout
         self._client = None
 
     @property
@@ -61,6 +63,7 @@ class OpenAIProvider(LLMProvider):
                 ],
                 temperature=temperature,
                 max_tokens=max_tokens,
+                timeout=self._timeout,
             )
 
             choice = response.choices[0]

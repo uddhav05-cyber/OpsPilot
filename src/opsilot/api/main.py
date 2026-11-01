@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Security
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, ConfigDict
@@ -35,6 +37,32 @@ CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "3600"))
 MIN_RELEVANCE_SCORE = float(os.getenv("MIN_RELEVANCE_SCORE", "0.15"))
 TOP_K = int(os.getenv("TOP_K", "5"))
 KNOWLEDGE_BASE_PATH = os.getenv("KNOWLEDGE_BASE_PATH", "knowledge_base/runbooks.json")
+
+# CORS configuration
+_raw_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*")
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _raw_cors_origins.split(",") if o.strip()]
+CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
+CORS_ALLOWED_METHODS = [m.strip() for m in os.getenv("CORS_ALLOWED_METHODS", "*").split(",") if m.strip()]
+CORS_ALLOWED_HEADERS = [h.strip() for h in os.getenv("CORS_ALLOWED_HEADERS", "*").split(",") if h.strip()]
+
+# Validate CORS configuration for production safety
+if ENVIRONMENT == "production":
+    # In production, wildcard origins with credentials is a security risk
+    if CORS_ALLOW_CREDENTIALS and (len(CORS_ALLOWED_ORIGINS) == 1 and CORS_ALLOWED_ORIGINS[0] == "*"):
+        raise RuntimeError(
+            "CORS configuration error: CORS_ALLOW_CREDENTIALS=true with CORS_ALLOWED_ORIGINS=* "
+            "is not allowed in production. Set CORS_ALLOWED_ORIGINS to an explicit list of trusted origins "
+            "(e.g., 'https://app.example.com,https://admin.example.com') or set CORS_ALLOW_CREDENTIALS=false."
+        )
+    # In production, require explicit origins (not wildcard) when credentials enabled
+    if CORS_ALLOW_CREDENTIALS and any(o == "*" for o in CORS_ALLOWED_ORIGINS):
+        raise RuntimeError(
+            "CORS configuration error: CORS_ALLOW_CREDENTIALS=true with wildcard origin (*) "
+            "is not allowed in production. Remove '*' from CORS_ALLOWED_ORIGINS or set CORS_ALLOW_CREDENTIALS=false."
+        )
+
+# Support phone for INSUFFICIENT_CONTEXT_MSG (can be overridden via env)
+SUPPORT_PHONE = os.getenv("SUPPORT_PHONE", "+1-555-0200")
 
 # Global state
 _knowledge_base: Optional[KnowledgeBase] = None
@@ -87,6 +115,18 @@ async def lifespan(app: FastAPI):
     print(f"Starting OpsPilot in {ENVIRONMENT} mode...")
     print(f"LLM Provider: {LLM_PROVIDER}")
 
+    # Validate KNOWLEDGE_BASE_PATH exists
+    kb_path = Path(KNOWLEDGE_BASE_PATH)
+    if not kb_path.exists():
+        raise RuntimeError(
+            f"Knowledge base file not found at '{KNOWLEDGE_BASE_PATH}'. "
+            f"Set KNOWLEDGE_BASE_PATH environment variable to a valid path."
+        )
+    if not kb_path.is_file():
+        raise RuntimeError(
+            f"KNOWLEDGE_BASE_PATH '{KNOWLEDGE_BASE_PATH}' is not a file."
+        )
+
     # Load knowledge base
     _knowledge_base = KnowledgeBase.from_json_file(KNOWLEDGE_BASE_PATH)
     print(f"Loaded {len(_knowledge_base)} runbooks from {KNOWLEDGE_BASE_PATH}")
@@ -111,6 +151,7 @@ async def lifespan(app: FastAPI):
         _llm_provider,
         min_relevance_score=MIN_RELEVANCE_SCORE,
         top_k=TOP_K,
+        support_phone=SUPPORT_PHONE,
     )
 
     # Initialize cache
@@ -130,6 +171,15 @@ app = FastAPI(
     description="IT Operations Knowledge Copilot - RAG-powered Q&A for IT runbooks",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ALLOWED_ORIGINS,
+    allow_credentials=CORS_ALLOW_CREDENTIALS,
+    allow_methods=CORS_ALLOWED_METHODS,
+    allow_headers=CORS_ALLOWED_HEADERS,
 )
 
 # Rate limiting
@@ -298,15 +348,7 @@ async def answer_question(
             cached=True,
         )
 
-    # Generate answer
-    answer = await provider.generate(
-        system_prompt=AnsweringPipeline.SYSTEM_PROMPT,
-        user_prompt=body.question,  # Pipeline will build full prompt
-        temperature=body.temperature,
-        max_tokens=body.max_tokens,
-    )
-
-    # Actually use pipeline for full RAG
+    # Generate answer using pipeline (handles retrieval + LLM generation)
     pipeline_answer = await _pipeline.answer(body.question)
 
     # Cache the result

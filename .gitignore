@@ -132,6 +132,7 @@ Thumbs.db
 *.db
 knowledge_base/*.json
 !knowledge_base/runbooks.json.example
+!knowledge_base/runbooks.json
 
 # Docker
 .docker/

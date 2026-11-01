@@ -80,16 +80,31 @@ class MockProvider(LLMProvider):
         lines = user_prompt.split("\n")
         context_docs = []
         in_context = False
+        current_doc = None
 
         for line in lines:
             if "CONTEXT DOCUMENTS" in line.upper() or "CONTEXT:" in line.upper():
                 in_context = True
                 continue
             if in_context and line.strip().startswith("["):
-                # Format: [doc_0] Title: content
-                context_docs.append(line.strip())
-            elif in_context and not line.strip():
+                # Format: [doc_0] Title (category) - score: 0.XX
+                # Save previous doc if exists
+                if current_doc is not None:
+                    context_docs.append(current_doc)
+                current_doc = line.strip()
+            elif in_context and current_doc is not None:
+                # Content lines for current doc
+                if line.strip() == "":
+                    # Empty line ends the context section
+                    break
+                current_doc += "\n" + line
+            elif in_context and not line.strip() and current_doc is None:
+                # Empty line before any doc found - end of context
                 break
+
+        # Don't forget the last doc
+        if current_doc is not None:
+            context_docs.append(current_doc)
 
         return context_docs
 

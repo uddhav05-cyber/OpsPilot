@@ -5,6 +5,7 @@ Combines retrieval with LLM generation to produce grounded answers with citation
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -38,11 +39,6 @@ class AnsweringPipeline:
 5. Be concise and actionable.
 6. Always ground your answer in the provided context."""
 
-    INSUFFICIENT_CONTEXT_MSG = (
-        "I don't have enough information in the knowledge base to answer this question. "
-        "Please contact the IT Service Desk at +1-555-0200 for assistance."
-    )
-
     def __init__(
         self,
         knowledge_base: KnowledgeBase,
@@ -50,9 +46,22 @@ class AnsweringPipeline:
         llm_provider: LLMProvider,
         min_relevance_score: float = 0.15,
         top_k: int = 5,
+        support_phone: Optional[str] = None,
     ):
         self._kb = knowledge_base
         self._retriever = retriever
+        self._llm = llm_provider
+        self._min_relevance_score = min_relevance_score
+        self._top_k = top_k
+        # Allow override via env var or constructor param
+        self._support_phone = support_phone or os.getenv("SUPPORT_PHONE", "+1-555-0200")
+
+    @property
+    def INSUFFICIENT_CONTEXT_MSG(self) -> str:
+        return (
+            "I don't have enough information in the knowledge base to answer this question. "
+            f"Please contact the IT Service Desk at {self._support_phone} for assistance."
+        )
         self._llm = llm_provider
         self._min_relevance_score = min_relevance_score
         self._top_k = top_k
