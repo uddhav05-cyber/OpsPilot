@@ -1,0 +1,9 @@
+[
+  {
+    "runbook_id": "unique-id",
+    "title": "Descriptive Title",
+    "category": "security|network|infrastructure|application|hardware",
+    "content": "Full runbook content with steps...",
+    "tags": ["tag1", "tag2"]
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "question": "How do I reset a user's MFA?",
+    "expected_answerable": true,
+    "expected_sources": ["mfa-reset-001"],
+    "category": "security",
+    "difficulty": "easy"
+  },
+  {
+    "question": "What is the meaning of life?",
+    "expected_answerable": false,
+    "expected_sources": [],
+    "category": "general",
+    "difficulty": "trick"
+  },
+  {
+    "question": "How to troubleshoot VPN connectivity?",
+    "expected_answerable": true,
+    "expected_sources": ["vpn-troubleshoot-001"],
+    "category": "network",
+    "difficulty": "easy"
+  },
+  {
+    "question": "DHCP server not handing out IPs",
+    "expected_answerable": true,
+    "expected_sources": ["dhcp-issues-001"],
+    "category": "network",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How to renew SSL certificate?",
+    "expected_answerable": true,
+    "expected_sources": ["cert-renewal-001"],
+    "category": "security",
+    "difficulty": "medium"
+  },
+  {
+    "question": "Printer not working in office",
+    "expected_answerable": true,
+    "expected_sources": ["printer-troubleshoot-001"],
+    "category": "hardware",
+    "difficulty": "easy"
+  },
+  {
+    "question": "Steps to provision a new server",
+    "expected_answerable": true,
+    "expected_sources": ["server-provision-001"],
+    "category": "infrastructure",
+    "difficulty": "medium"
+  },
+  {
+    "question": "How to restore from backup?",
+    "expected_answerable": true,
+    "expected_sources": ["backup-restore-001"],
+    "category": "infrastructure",
+    "difficulty": "medium"
+  },
+  {
+    "question": "Application deployment process",
+    "expected_answerable": true,
+    "expected_sources": ["app-deploy-001"],
+    "category": "application",
+    "difficulty": "medium"
+  },
+  {
+    "question": "What to do during security incident?",
+    "expected_answerable": true,
+    "expected_sources": ["incident-response-001"],
+    "category": "security",
+    "difficulty": "hard"
+  },
+  {
+    "question": "DNS not resolving internal names",
+    "expected_answerable": true,
+    "expected_sources": ["dns-troubleshoot-001"],
+    "category": "network",
+    "difficulty": "easy"
+  },
+  {
+    "question": "How to configure firewall rules?",
+    "expected_answerable": false,
+    "expected_sources": [],
+    "category": "network",
+    "difficulty": "trick"
+  },
+  {
+    "question": "Best practice for password policy",
+    "expected_answerable": false,
+    "expected_sources": [],
+    "category": "security",
+    "difficulty": "trick"
+  },
+  {
+    "question": "MFA reset and VPN setup combined",
+    "expected_answerable": true,
+    "expected_sources": ["mfa-reset-001", "vpn-troubleshoot-001"],
+    "category": "security",
+    "difficulty": "hard"
+  },
+  {
+    "question": "Certificate renewal and DNS troubleshooting",
+    "expected_answerable": true,
+    "expected_sources": ["cert-renewal-001", "dns-troubleshoot-001"],
+    "category": "network",
+    "difficulty": "hard"
+  }
+]
